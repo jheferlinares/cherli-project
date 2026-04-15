@@ -112,25 +112,53 @@ export default function Inscripcion() {
           </div>
 
           {/* Concurso de triples */}
-          <label className="flex items-center gap-3 bg-[#111] border border-yellow-600/40 rounded-xl px-4 py-4 cursor-pointer hover:border-yellow-500 transition-all">
-            <input name="incluye_triples" type="checkbox" checked={form.incluye_triples} onChange={handleChange}
-              className="w-5 h-5 accent-yellow-500" />
-            <div>
-              <p className="font-bold text-yellow-400">+ Concurso de Triples <span className="text-white">+3 USD</span></p>
-              <p className="text-xs text-gray-400">Participar en el concurso individual el mismo día</p>
-            </div>
-          </label>
+          <div>
+            <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">Concurso de Triples (opcional)</p>
+            <button
+              type="button"
+              onClick={() => setForm(f => ({ ...f, incluye_triples: !f.incluye_triples }))}
+              className={`w-full flex items-center gap-3 border rounded-xl px-4 py-4 transition-all ${
+                form.incluye_triples
+                  ? 'bg-yellow-900/30 border-yellow-500'
+                  : 'bg-[#111] border-yellow-600/40'
+              }`}
+            >
+              <span className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${
+                form.incluye_triples ? 'bg-yellow-500 border-yellow-500' : 'border-gray-500'
+              }`}>
+                {form.incluye_triples && <span className="text-black text-xs font-black">✓</span>}
+              </span>
+              <div className="text-left">
+                <p className="font-bold text-yellow-400">+ Concurso de Triples <span className="text-white">+3 USD</span></p>
+                <p className="text-xs text-gray-400">Participar en el concurso individual el mismo día</p>
+              </div>
+            </button>
+          </div>
 
           {/* Pasarela de pago */}
           <div>
-            <label className="text-xs text-gray-400 uppercase tracking-wider">Método de pago</label>
-            <select name="pasarela" required value={form.pasarela} onChange={handleChange}
-              className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none">
-              <option value="" disabled>Selecciona un método</option>
-              <option value="mercantil">Pago Móvil · Banco Mercantil</option>
-              <option value="bnc">Pago Móvil · BNC</option>
-              <option value="binance">Binance Pay</option>
-            </select>
+            <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">Método de pago</p>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { value: 'mercantil', label: 'Pago Móvil', sub: 'Mercantil' },
+                { value: 'bnc', label: 'Pago Móvil', sub: 'BNC' },
+                { value: 'binance', label: 'Binance', sub: 'Pay' },
+              ].map(op => (
+                <button
+                  key={op.value}
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, pasarela: op.value }))}
+                  className={`border rounded-xl px-3 py-3 text-center transition-all ${
+                    form.pasarela === op.value
+                      ? 'bg-red-900/40 border-red-500 text-white'
+                      : 'bg-[#111] border-gray-700 text-gray-400'
+                  }`}
+                >
+                  <p className="text-xs font-bold">{op.label}</p>
+                  <p className="text-xs">{op.sub}</p>
+                </button>
+              ))}
+            </div>
           </div>
 
           {form.pasarela && infoPago[form.pasarela] && (
@@ -170,7 +198,7 @@ export default function Inscripcion() {
             <p className="text-xs text-gray-400">Entiendo que <span className="text-white font-bold">no se devuelven inscripciones una vez pagadas</span> y acepto la decisión inapelable del árbitro.</p>
           </label>
 
-          <button type="submit" disabled={loading}
+          <button type="submit" disabled={loading || !form.pasarela}
             className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xl font-black py-5 rounded-2xl transition-all pulse-red">
             {loading ? 'ENVIANDO...' : 'CONFIRMAR INSCRIPCIÓN →'}
           </button>
