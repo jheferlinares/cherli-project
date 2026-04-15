@@ -133,7 +133,7 @@ export default function Home() {
           <p className="text-center text-gray-400 mb-10">📍 Cancha Santa Cruz · Calle 5 de Marzo, Leonardo Ruiz Pineda (esquina)</p>
           <div className="rounded-2xl overflow-hidden border border-gray-800 h-72">
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3923.0!2d-63.5!3d10.0!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zCancha+Santa+Cruz!5e0!3m2!1ses!2sve!4v1"
+              src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d1422.2798433839398!2d-67.51372311480536!3d10.183098740048347!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e802267b9f63edd%3A0x5585809d2effe859!2s5FMP%2B6QG%2C%20Santa%20Cruz%202123%2C%20Aragua%2C%20Venezuela!5e1!3m2!1ses-419!2sus!4v1776212910218!5m2!1ses-419!2sus"
               width="100%"
               height="100%"
               style={{ border: 0 }}
