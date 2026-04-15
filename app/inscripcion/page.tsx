@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -9,12 +9,35 @@ export default function Inscripcion() {
   const [form, setForm] = useState({
     nombre: '', apellido: '', fecha_nacimiento: '', nombre_equipo: '',
     telefono: '', correo: '', incluye_triples: false,
-    pasarela: 'binance', numero_comprobante: ''
+    pasarela: '', numero_comprobante: ''
   })
+
+  const infoPago: Record<string, { titulo: string; lineas: string[] }> = {
+    mercantil: {
+      titulo: 'Pago Móvil · Banco Mercantil',
+      lineas: ['Teléfono: 04124236347', 'CI: 24984205', 'Banco: Mercantil']
+    },
+    bnc: {
+      titulo: 'Pago Móvil · BNC',
+      lineas: ['Teléfono: 04124236347', 'CI: 24984205', 'Banco: Nacional de Crédito (BNC)']
+    },
+    binance: {
+      titulo: 'Binance Pay',
+      lineas: ['Email: cherligomez95@gmail.com']
+    }
+  }
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [tasaBcv, setTasaBcv] = useState<number | null>(null)
 
   const monto = form.incluye_triples ? 28 : 25
+
+  useEffect(() => {
+    fetch('https://ve.dolarapi.com/v1/dolares/oficial')
+      .then(r => r.json())
+      .then(d => setTasaBcv(d.promedio ?? null))
+      .catch(() => null)
+  }, [])
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const target = e.target as HTMLInputElement
@@ -101,13 +124,36 @@ export default function Inscripcion() {
           {/* Pasarela de pago */}
           <div>
             <label className="text-xs text-gray-400 uppercase tracking-wider">Método de pago</label>
-            <select name="pasarela" value={form.pasarela} onChange={handleChange}
+            <select name="pasarela" required value={form.pasarela} onChange={handleChange}
               className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none">
-              <option value="binance">Binance Pay (USDT)</option>
-              <option value="zelle">Zelle</option>
-              <option value="paypal">PayPal</option>
-              <option value="efectivo">Efectivo (en el evento)</option>
+              <option value="" disabled>Selecciona un método</option>
+              <option value="mercantil">Pago Móvil · Banco Mercantil</option>
+              <option value="bnc">Pago Móvil · BNC</option>
+              <option value="binance">Binance Pay</option>
             </select>
+          </div>
+
+          {form.pasarela && infoPago[form.pasarela] && (
+            <div className="bg-[#111] border border-red-800/40 rounded-xl px-4 py-4 space-y-1">
+              <p className="text-xs text-red-400 font-bold uppercase tracking-wider mb-2">{infoPago[form.pasarela].titulo}</p>
+              {infoPago[form.pasarela].lineas.map(l => (
+                <p key={l} className="text-sm text-white font-mono">{l}</p>
+              ))}
+            </div>
+          )}
+
+          {/* Resumen */}
+          <div className="bg-red-950/30 border border-red-800/40 rounded-xl px-4 py-4">
+            <p className="text-sm text-gray-400">Total a pagar</p>
+            <p className="text-4xl font-black text-white">{monto} <span className="text-xl text-gray-400">{form.pasarela === 'binance' ? 'USDT' : 'USD'}</span></p>
+            {tasaBcv && form.pasarela !== 'binance' && (
+              <div className="mt-2 pt-2 border-t border-red-800/30">
+                <p className="text-lg font-bold text-gray-300">
+                  ≈ {(monto * tasaBcv).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-sm text-gray-500">Bs.</span>
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Tasa BCV: {tasaBcv.toFixed(2)} Bs/USD</p>
+              </div>
+            )}
           </div>
 
           <div>
@@ -117,20 +163,19 @@ export default function Inscripcion() {
               className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none" />
           </div>
 
-          {/* Resumen */}
-          <div className="bg-red-950/30 border border-red-800/40 rounded-xl px-4 py-4">
-            <p className="text-sm text-gray-400">Total a pagar</p>
-            <p className="text-4xl font-black text-white">{monto} <span className="text-xl text-gray-400">USD</span></p>
-          </div>
-
           {error && <p className="text-red-400 text-sm bg-red-950/30 border border-red-800 rounded-xl px-4 py-3">{error}</p>}
+
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input type="checkbox" required className="w-5 h-5 mt-0.5 accent-red-600 shrink-0" />
+            <p className="text-xs text-gray-400">Entiendo que <span className="text-white font-bold">no se devuelven inscripciones una vez pagadas</span> y acepto la decisión inapelable del árbitro.</p>
+          </label>
 
           <button type="submit" disabled={loading}
             className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xl font-black py-5 rounded-2xl transition-all pulse-red">
             {loading ? 'ENVIANDO...' : 'CONFIRMAR INSCRIPCIÓN →'}
           </button>
 
-          <p className="text-xs text-gray-500 text-center">No se devuelven inscripciones una vez pagadas</p>
+
         </form>
       </div>
     </main>
