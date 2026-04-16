@@ -110,18 +110,19 @@ export default function Inscripcion() {
           </div>
 
           {/* Concurso de triples */}
-          <label className="flex items-center gap-3 bg-[#111] border border-yellow-600/40 rounded-xl px-4 py-4 cursor-pointer">
+          <div className="flex items-center gap-3 bg-[#111] border border-yellow-600/40 rounded-xl px-4 py-4">
             <input
+              id="triples"
               type="checkbox"
               checked={incluyeTriples}
               onChange={e => setIncluyeTriples(e.target.checked)}
-              className="w-5 h-5 accent-yellow-500"
+              className="w-6 h-6 accent-yellow-500"
             />
-            <div>
+            <label htmlFor="triples" className="cursor-pointer flex-1">
               <p className="font-bold text-yellow-400">+ Concurso de Triples <span className="text-white">+3 USD</span></p>
               <p className="text-xs text-gray-400">Participar en el concurso individual el mismo día</p>
-            </div>
-          </label>
+            </label>
+          </div>
 
           {/* Pasarela de pago */}
           <div>
@@ -130,6 +131,7 @@ export default function Inscripcion() {
               required
               value={pasarela}
               onChange={e => setPasarela(e.target.value)}
+              style={{ WebkitAppearance: 'auto' }}
               className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none"
             >
               <option value="" disabled>Selecciona un método</option>
