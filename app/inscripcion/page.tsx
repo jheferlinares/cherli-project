@@ -117,6 +117,7 @@ export default function Inscripcion() {
             <button
               type="button"
               onClick={(e) => { e.preventDefault(); setForm(f => ({ ...f, incluye_triples: !f.incluye_triples })) }}
+              onTouchEnd={(e) => { e.preventDefault(); setForm(f => ({ ...f, incluye_triples: !f.incluye_triples })) }}
               className={`w-full flex items-center gap-3 border rounded-xl px-4 py-4 transition-all ${
                 form.incluye_triples
                   ? 'bg-yellow-900/30 border-yellow-500'
@@ -147,7 +148,8 @@ export default function Inscripcion() {
                 <button
                   key={op.value}
                   type="button"
-                  onClick={(e) => { e.preventDefault(); setForm(f => ({ ...f, pasarela: op.value })) }}}
+                  onClick={(e) => { e.preventDefault(); setForm(f => ({ ...f, pasarela: op.value })) }}
+                  onTouchEnd={(e) => { e.preventDefault(); setForm(f => ({ ...f, pasarela: op.value })) }}}
                   className={`border rounded-xl px-3 py-3 text-center transition-all ${
                     form.pasarela === op.value
                       ? 'bg-red-900/40 border-red-500 text-white'
