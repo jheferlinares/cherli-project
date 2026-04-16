@@ -129,7 +129,7 @@ export default function Inscripcion() {
             <label className="text-xs text-gray-400 uppercase tracking-wider">Método de pago</label>
             <select
               required
-              value={pasarela}
+              defaultValue=""
               onChange={e => setPasarela(e.target.value)}
               style={{ WebkitAppearance: 'auto' }}
               className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none"
