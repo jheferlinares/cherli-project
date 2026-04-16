@@ -3,14 +3,22 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
-
 export default function Inscripcion() {
   const router = useRouter()
-  const [form, setForm] = useState({
-    nombre: '', apellido: '', fecha_nacimiento: '', nombre_equipo: '',
-    telefono: '', correo: '', incluye_triples: false,
-    pasarela: '', numero_comprobante: ''
-  })
+  const [nombre, setNombre] = useState('')
+  const [apellido, setApellido] = useState('')
+  const [fechaNacimiento, setFechaNacimiento] = useState('')
+  const [nombreEquipo, setNombreEquipo] = useState('')
+  const [telefono, setTelefono] = useState('')
+  const [correo, setCorreo] = useState('')
+  const [incluyeTriples, setIncluyeTriples] = useState(false)
+  const [pasarela, setPasarela] = useState('')
+  const [numeroComprobante, setNumeroComprobante] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [tasaBcv, setTasaBcv] = useState<number | null>(null)
+
+  const monto = incluyeTriples ? 28 : 25
 
   const infoPago: Record<string, { titulo: string; lineas: string[] }> = {
     mercantil: {
@@ -26,11 +34,6 @@ export default function Inscripcion() {
       lineas: ['Email: cherligomez95@gmail.com']
     }
   }
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [tasaBcv, setTasaBcv] = useState<number | null>(null)
-
-  const monto = form.incluye_triples ? 28 : 25
 
   useEffect(() => {
     fetch('https://ve.dolarapi.com/v1/dolares/oficial')
@@ -38,11 +41,6 @@ export default function Inscripcion() {
       .then(d => setTasaBcv(d.promedio ?? null))
       .catch(() => null)
   }, [])
-
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
-    const target = e.target as HTMLInputElement
-    setForm(f => ({ ...f, [target.name]: target.type === 'checkbox' ? target.checked : target.value }))
-  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -52,18 +50,18 @@ export default function Inscripcion() {
     const res = await fetch('/api/inscribir', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form)
+      body: JSON.stringify({
+        nombre, apellido, fecha_nacimiento: fechaNacimiento,
+        nombre_equipo: nombreEquipo, telefono, correo,
+        incluye_triples: incluyeTriples, pasarela, numero_comprobante: numeroComprobante
+      })
     })
 
     const data = await res.json()
     setLoading(false)
 
-    if (!res.ok) {
-      setError(data.error || 'Error al inscribirse')
-      return
-    }
-
-    router.push(`/confirmacion?nombre=${encodeURIComponent(form.nombre)}&equipo=${encodeURIComponent(form.nombre_equipo)}`)
+    if (!res.ok) { setError(data.error || 'Error al inscribirse'); return }
+    router.push(`/confirmacion?nombre=${encodeURIComponent(nombre)}&equipo=${encodeURIComponent(nombreEquipo)}`)
   }
 
   return (
@@ -77,96 +75,74 @@ export default function Inscripcion() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-gray-400 uppercase tracking-wider">Nombre</label>
-              <input name="nombre" required value={form.nombre} onChange={handleChange}
+              <input required value={nombre} onChange={e => setNombre(e.target.value)}
                 className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none" />
             </div>
             <div>
               <label className="text-xs text-gray-400 uppercase tracking-wider">Apellido</label>
-              <input name="apellido" required value={form.apellido} onChange={handleChange}
+              <input required value={apellido} onChange={e => setApellido(e.target.value)}
                 className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none" />
             </div>
           </div>
 
           <div>
             <label className="text-xs text-gray-400 uppercase tracking-wider">Fecha de nacimiento</label>
-            <input name="fecha_nacimiento" type="date" required value={form.fecha_nacimiento} onChange={handleChange}
+            <input type="date" required value={fechaNacimiento} onChange={e => setFechaNacimiento(e.target.value)}
               className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none" />
           </div>
 
           <div>
             <label className="text-xs text-gray-400 uppercase tracking-wider">Nombre del equipo</label>
-            <input name="nombre_equipo" required value={form.nombre_equipo} onChange={handleChange}
+            <input required value={nombreEquipo} onChange={e => setNombreEquipo(e.target.value)}
               className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none" />
           </div>
 
           <div>
             <label className="text-xs text-gray-400 uppercase tracking-wider">Teléfono / WhatsApp</label>
-            <input name="telefono" required value={form.telefono} onChange={handleChange}
+            <input required value={telefono} onChange={e => setTelefono(e.target.value)}
               className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none" />
           </div>
 
           <div>
             <label className="text-xs text-gray-400 uppercase tracking-wider">Correo electrónico</label>
-            <input name="correo" type="email" required value={form.correo} onChange={handleChange}
+            <input type="email" required value={correo} onChange={e => setCorreo(e.target.value)}
               className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none" />
           </div>
 
           {/* Concurso de triples */}
-          <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">Concurso de Triples (opcional)</p>
-            <button
-              type="button"
-              onClick={(e) => { e.preventDefault(); setForm(f => ({ ...f, incluye_triples: !f.incluye_triples })) }}
-              onTouchEnd={(e) => { e.preventDefault(); setForm(f => ({ ...f, incluye_triples: !f.incluye_triples })) }}
-              className={`w-full flex items-center gap-3 border rounded-xl px-4 py-4 transition-all ${
-                form.incluye_triples
-                  ? 'bg-yellow-900/30 border-yellow-500'
-                  : 'bg-[#111] border-yellow-600/40'
-              }`}
-            >
-              <span className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${
-                form.incluye_triples ? 'bg-yellow-500 border-yellow-500' : 'border-gray-500'
-              }`}>
-                {form.incluye_triples && <span className="text-black text-xs font-black">✓</span>}
-              </span>
-              <div className="text-left">
-                <p className="font-bold text-yellow-400">+ Concurso de Triples <span className="text-white">+3 USD</span></p>
-                <p className="text-xs text-gray-400">Participar en el concurso individual el mismo día</p>
-              </div>
-            </button>
-          </div>
+          <label className="flex items-center gap-3 bg-[#111] border border-yellow-600/40 rounded-xl px-4 py-4 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={incluyeTriples}
+              onChange={e => setIncluyeTriples(e.target.checked)}
+              className="w-5 h-5 accent-yellow-500"
+            />
+            <div>
+              <p className="font-bold text-yellow-400">+ Concurso de Triples <span className="text-white">+3 USD</span></p>
+              <p className="text-xs text-gray-400">Participar en el concurso individual el mismo día</p>
+            </div>
+          </label>
 
           {/* Pasarela de pago */}
           <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">Método de pago</p>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { value: 'mercantil', label: 'Pago Móvil', sub: 'Mercantil' },
-                { value: 'bnc', label: 'Pago Móvil', sub: 'BNC' },
-                { value: 'binance', label: 'Binance', sub: 'Pay' },
-              ].map(op => (
-                <button
-                  key={op.value}
-                  type="button"
-                  onClick={(e) => { e.preventDefault(); setForm(f => ({ ...f, pasarela: op.value })) }}
-                  onTouchEnd={(e) => { e.preventDefault(); setForm(f => ({ ...f, pasarela: op.value })) }}}
-                  className={`border rounded-xl px-3 py-3 text-center transition-all ${
-                    form.pasarela === op.value
-                      ? 'bg-red-900/40 border-red-500 text-white'
-                      : 'bg-[#111] border-gray-700 text-gray-400'
-                  }`}
-                >
-                  <p className="text-xs font-bold">{op.label}</p>
-                  <p className="text-xs">{op.sub}</p>
-                </button>
-              ))}
-            </div>
+            <label className="text-xs text-gray-400 uppercase tracking-wider">Método de pago</label>
+            <select
+              required
+              value={pasarela}
+              onChange={e => setPasarela(e.target.value)}
+              className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none"
+            >
+              <option value="" disabled>Selecciona un método</option>
+              <option value="mercantil">Pago Móvil · Mercantil</option>
+              <option value="bnc">Pago Móvil · BNC</option>
+              <option value="binance">Binance Pay</option>
+            </select>
           </div>
 
-          {form.pasarela && infoPago[form.pasarela] && (
+          {pasarela && infoPago[pasarela] && (
             <div className="bg-[#111] border border-red-800/40 rounded-xl px-4 py-4 space-y-1">
-              <p className="text-xs text-red-400 font-bold uppercase tracking-wider mb-2">{infoPago[form.pasarela].titulo}</p>
-              {infoPago[form.pasarela].lineas.map(l => (
+              <p className="text-xs text-red-400 font-bold uppercase tracking-wider mb-2">{infoPago[pasarela].titulo}</p>
+              {infoPago[pasarela].lineas.map(l => (
                 <p key={l} className="text-sm text-white font-mono">{l}</p>
               ))}
             </div>
@@ -175,8 +151,8 @@ export default function Inscripcion() {
           {/* Resumen */}
           <div className="bg-red-950/30 border border-red-800/40 rounded-xl px-4 py-4">
             <p className="text-sm text-gray-400">Total a pagar</p>
-            <p className="text-4xl font-black text-white">{monto} <span className="text-xl text-gray-400">{form.pasarela === 'binance' ? 'USDT' : 'USD'}</span></p>
-            {tasaBcv && form.pasarela !== 'binance' && (
+            <p className="text-4xl font-black text-white">{monto} <span className="text-xl text-gray-400">{pasarela === 'binance' ? 'USDT' : 'USD'}</span></p>
+            {tasaBcv && pasarela !== 'binance' && (
               <div className="mt-2 pt-2 border-t border-red-800/30">
                 <p className="text-lg font-bold text-gray-300">
                   ≈ {(monto * tasaBcv).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-sm text-gray-500">Bs.</span>
@@ -188,7 +164,7 @@ export default function Inscripcion() {
 
           <div>
             <label className="text-xs text-gray-400 uppercase tracking-wider">Número de comprobante / referencia</label>
-            <input name="numero_comprobante" required value={form.numero_comprobante} onChange={handleChange}
+            <input required value={numeroComprobante} onChange={e => setNumeroComprobante(e.target.value)}
               placeholder="Ej: TXN123456789"
               className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none" />
           </div>
@@ -200,12 +176,10 @@ export default function Inscripcion() {
             <p className="text-xs text-gray-400">Entiendo que <span className="text-white font-bold">no se devuelven inscripciones una vez pagadas</span> y acepto la decisión inapelable del árbitro.</p>
           </label>
 
-          <button type="submit" disabled={loading || !form.pasarela}
+          <button type="submit" disabled={loading || !pasarela}
             className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xl font-black py-5 rounded-2xl transition-all pulse-red">
             {loading ? 'ENVIANDO...' : 'CONFIRMAR INSCRIPCIÓN →'}
           </button>
-
-
         </form>
       </div>
     </main>
