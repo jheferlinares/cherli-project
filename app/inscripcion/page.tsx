@@ -1,39 +1,40 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
+const infoPago: Record<string, { titulo: string; lineas: string[] }> = {
+  mercantil: {
+    titulo: 'Pago Móvil · Banco Mercantil',
+    lineas: ['Teléfono: 04124236347', 'CI: 24984205', 'Banco: Mercantil']
+  },
+  bnc: {
+    titulo: 'Pago Móvil · BNC',
+    lineas: ['Teléfono: 04124236347', 'CI: 24984205', 'Banco: Nacional de Crédito (BNC)']
+  },
+  binance: {
+    titulo: 'Binance Pay',
+    lineas: ['Email: cherligomez95@gmail.com']
+  }
+}
+
 export default function Inscripcion() {
   const router = useRouter()
-  const [nombre, setNombre] = useState('')
-  const [apellido, setApellido] = useState('')
-  const [fechaNacimiento, setFechaNacimiento] = useState('')
-  const [nombreEquipo, setNombreEquipo] = useState('')
-  const [telefono, setTelefono] = useState('')
-  const [correo, setCorreo] = useState('')
-  const [incluyeTriples, setIncluyeTriples] = useState(false)
   const [pasarela, setPasarela] = useState('')
-  const [numeroComprobante, setNumeroComprobante] = useState('')
+  const [incluyeTriples, setIncluyeTriples] = useState(false)
+  const [tasaBcv, setTasaBcv] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [tasaBcv, setTasaBcv] = useState<number | null>(null)
 
   const monto = incluyeTriples ? 28 : 25
 
-  const infoPago: Record<string, { titulo: string; lineas: string[] }> = {
-    mercantil: {
-      titulo: 'Pago Móvil · Banco Mercantil',
-      lineas: ['Teléfono: 04124236347', 'CI: 24984205', 'Banco: Mercantil']
-    },
-    bnc: {
-      titulo: 'Pago Móvil · BNC',
-      lineas: ['Teléfono: 04124236347', 'CI: 24984205', 'Banco: Nacional de Crédito (BNC)']
-    },
-    binance: {
-      titulo: 'Binance Pay',
-      lineas: ['Email: cherligomez95@gmail.com']
-    }
-  }
+  const nombreRef = useRef<HTMLInputElement>(null)
+  const apellidoRef = useRef<HTMLInputElement>(null)
+  const fechaRef = useRef<HTMLInputElement>(null)
+  const equipoRef = useRef<HTMLInputElement>(null)
+  const telefonoRef = useRef<HTMLInputElement>(null)
+  const correoRef = useRef<HTMLInputElement>(null)
+  const comprobanteRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetch('https://ve.dolarapi.com/v1/dolares/oficial')
@@ -44,6 +45,7 @@ export default function Inscripcion() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (!pasarela) { setError('Selecciona un método de pago'); return }
     setLoading(true)
     setError('')
 
@@ -51,17 +53,22 @@ export default function Inscripcion() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        nombre, apellido, fecha_nacimiento: fechaNacimiento,
-        nombre_equipo: nombreEquipo, telefono, correo,
-        incluye_triples: incluyeTriples, pasarela, numero_comprobante: numeroComprobante
+        nombre: nombreRef.current?.value,
+        apellido: apellidoRef.current?.value,
+        fecha_nacimiento: fechaRef.current?.value,
+        nombre_equipo: equipoRef.current?.value,
+        telefono: telefonoRef.current?.value,
+        correo: correoRef.current?.value,
+        incluye_triples: incluyeTriples,
+        pasarela,
+        numero_comprobante: comprobanteRef.current?.value
       })
     })
 
     const data = await res.json()
     setLoading(false)
-
     if (!res.ok) { setError(data.error || 'Error al inscribirse'); return }
-    router.push(`/confirmacion?nombre=${encodeURIComponent(nombre)}&equipo=${encodeURIComponent(nombreEquipo)}`)
+    router.push(`/confirmacion?nombre=${encodeURIComponent(nombreRef.current?.value || '')}&equipo=${encodeURIComponent(equipoRef.current?.value || '')}`)
   }
 
   return (
@@ -75,38 +82,32 @@ export default function Inscripcion() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-gray-400 uppercase tracking-wider">Nombre</label>
-              <input required value={nombre} onChange={e => setNombre(e.target.value)}
-                className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none" />
+              <input ref={nombreRef} required className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none" />
             </div>
             <div>
               <label className="text-xs text-gray-400 uppercase tracking-wider">Apellido</label>
-              <input required value={apellido} onChange={e => setApellido(e.target.value)}
-                className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none" />
+              <input ref={apellidoRef} required className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none" />
             </div>
           </div>
 
           <div>
             <label className="text-xs text-gray-400 uppercase tracking-wider">Fecha de nacimiento</label>
-            <input type="date" required value={fechaNacimiento} onChange={e => setFechaNacimiento(e.target.value)}
-              className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none" />
+            <input ref={fechaRef} type="date" required className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none" />
           </div>
 
           <div>
             <label className="text-xs text-gray-400 uppercase tracking-wider">Nombre del equipo</label>
-            <input required value={nombreEquipo} onChange={e => setNombreEquipo(e.target.value)}
-              className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none" />
+            <input ref={equipoRef} required className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none" />
           </div>
 
           <div>
             <label className="text-xs text-gray-400 uppercase tracking-wider">Teléfono / WhatsApp</label>
-            <input required value={telefono} onChange={e => setTelefono(e.target.value)}
-              className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none" />
+            <input ref={telefonoRef} required className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none" />
           </div>
 
           <div>
             <label className="text-xs text-gray-400 uppercase tracking-wider">Correo electrónico</label>
-            <input type="email" required value={correo} onChange={e => setCorreo(e.target.value)}
-              className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none" />
+            <input ref={correoRef} type="email" required className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none" />
           </div>
 
           {/* Concurso de triples */}
@@ -114,25 +115,23 @@ export default function Inscripcion() {
             <input
               id="triples"
               type="checkbox"
-              checked={incluyeTriples}
+              style={{ WebkitAppearance: 'checkbox', width: 24, height: 24 }}
               onChange={e => setIncluyeTriples(e.target.checked)}
-              className="w-6 h-6 accent-yellow-500"
             />
-            <label htmlFor="triples" className="cursor-pointer flex-1">
+            <label htmlFor="triples" className="flex-1">
               <p className="font-bold text-yellow-400">+ Concurso de Triples <span className="text-white">+3 USD</span></p>
               <p className="text-xs text-gray-400">Participar en el concurso individual el mismo día</p>
             </label>
           </div>
 
-          {/* Pasarela de pago */}
+          {/* Método de pago */}
           <div>
             <label className="text-xs text-gray-400 uppercase tracking-wider">Método de pago</label>
             <select
-              required
+              style={{ WebkitAppearance: 'auto', fontSize: 16 }}
               defaultValue=""
               onChange={e => setPasarela(e.target.value)}
-              style={{ WebkitAppearance: 'auto' }}
-              className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none"
+              className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white outline-none"
             >
               <option value="" disabled>Selecciona un método</option>
               <option value="mercantil">Pago Móvil · Mercantil</option>
@@ -153,7 +152,9 @@ export default function Inscripcion() {
           {/* Resumen */}
           <div className="bg-red-950/30 border border-red-800/40 rounded-xl px-4 py-4">
             <p className="text-sm text-gray-400">Total a pagar</p>
-            <p className="text-4xl font-black text-white">{monto} <span className="text-xl text-gray-400">{pasarela === 'binance' ? 'USDT' : 'USD'}</span></p>
+            <p className="text-4xl font-black text-white">
+              {monto} <span className="text-xl text-gray-400">{pasarela === 'binance' ? 'USDT' : 'USD'}</span>
+            </p>
             {tasaBcv && pasarela !== 'binance' && (
               <div className="mt-2 pt-2 border-t border-red-800/30">
                 <p className="text-lg font-bold text-gray-300">
@@ -166,19 +167,20 @@ export default function Inscripcion() {
 
           <div>
             <label className="text-xs text-gray-400 uppercase tracking-wider">Número de comprobante / referencia</label>
-            <input required value={numeroComprobante} onChange={e => setNumeroComprobante(e.target.value)}
-              placeholder="Ej: TXN123456789"
+            <input ref={comprobanteRef} required placeholder="Ej: TXN123456789"
               className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none" />
           </div>
 
           {error && <p className="text-red-400 text-sm bg-red-950/30 border border-red-800 rounded-xl px-4 py-3">{error}</p>}
 
-          <label className="flex items-start gap-3 cursor-pointer">
-            <input type="checkbox" required className="w-5 h-5 mt-0.5 accent-red-600 shrink-0" />
-            <p className="text-xs text-gray-400">Entiendo que <span className="text-white font-bold">no se devuelven inscripciones una vez pagadas</span> y acepto la decisión inapelable del árbitro.</p>
-          </label>
+          <div className="flex items-start gap-3">
+            <input id="disclaimer" type="checkbox" required style={{ WebkitAppearance: 'checkbox', width: 20, height: 20, marginTop: 2 }} />
+            <label htmlFor="disclaimer" className="text-xs text-gray-400">
+              Entiendo que <span className="text-white font-bold">no se devuelven inscripciones una vez pagadas</span> y acepto la decisión inapelable del árbitro.
+            </label>
+          </div>
 
-          <button type="submit" disabled={loading || !pasarela}
+          <button type="submit" disabled={loading}
             className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xl font-black py-5 rounded-2xl transition-all pulse-red">
             {loading ? 'ENVIANDO...' : 'CONFIRMAR INSCRIPCIÓN →'}
           </button>
