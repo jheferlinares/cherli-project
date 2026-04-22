@@ -32,12 +32,11 @@ export default function Home() {
           </p>
 
           <div className="max-w-sm mx-auto mb-8">
-            <ContadorCupos />
+            <div className="bg-black/60 border border-red-900 rounded-2xl p-6 text-center backdrop-blur-sm">
+              <p className="text-yellow-400 font-semibold text-lg">⚡ Cupos muy limitados</p>
+              <p className="text-gray-400 text-sm mt-1">Una vez se llenen, se cierra la inscripción</p>
+            </div>
           </div>
-
-          <p className="text-yellow-400 font-semibold mb-8 text-lg">
-            ⚡ Cupos muy limitados — Una vez se llenen, se cierra la inscripción
-          </p>
 
           <Link
             href="/inscripcion"
@@ -65,7 +64,7 @@ export default function Home() {
             <div className="bg-[#111] border border-red-600 rounded-3xl p-8 card-glow transition-all">
               <div className="text-red-500 text-4xl mb-4">🏆</div>
               <h3 className="text-2xl font-black mb-2">Torneo 3x3</h3>
-              <p className="text-6xl font-black text-white mt-4">25 <span className="text-2xl text-gray-400">USD</span></p>
+              <p className="text-6xl font-black text-white mt-4">20 <span className="text-2xl text-gray-400">USD</span></p>
               <div className="mt-6 space-y-2 text-sm text-gray-300">
                 <p>✅ Árbitros incluidos</p>
                 <p>✅ Cancha incluida</p>

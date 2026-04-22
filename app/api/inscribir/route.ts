@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'No hay cupos disponibles' }, { status: 400 })
   }
 
-  const monto_usd = incluye_triples ? 28 : 25
+  const monto_usd = incluye_triples ? 23 : 20
 
   const { error: insertError } = await supabaseAdmin
     .from('inscripciones')

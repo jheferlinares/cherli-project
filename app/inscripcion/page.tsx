@@ -84,7 +84,7 @@ export default function Inscripcion() {
             <input id="correo" type="email" required className="w-full mt-1 bg-[#111] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-red-600 outline-none" />
           </div>
 
-          {/* Triples - vanilla JS */}
+          {/* Triples */}
           <div className="bg-[#111] border border-yellow-600/40 rounded-xl px-4 py-4">
             <div className="flex items-center gap-3">
               <input id="triples" type="checkbox"
@@ -96,13 +96,17 @@ export default function Inscripcion() {
                   const tasaEl = document.getElementById('tasa-bcv')
                   const monedaEl = document.getElementById('monto-moneda')
                   const pasarela = (document.getElementById('pasarela') as HTMLSelectElement)?.value
-                  const base = checked ? 28 : 25
+                  const base = checked ? 23 : 20
                   if (montoEl) montoEl.textContent = String(base)
                   if (monedaEl) monedaEl.textContent = pasarela === 'binance' ? 'USDT' : 'USD'
                   const tasa = parseFloat(tasaEl?.dataset.tasa || '0')
-                  if (bsEl && tasa && pasarela !== 'binance') {
-                    bsEl.textContent = `≈ ${(base * tasa).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs.`
-                    bsEl.style.display = 'block'
+                  if (bsEl) {
+                    if (tasa && pasarela !== 'binance') {
+                      bsEl.textContent = `≈ ${(base * tasa).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs.`
+                      bsEl.style.display = 'block'
+                    } else {
+                      bsEl.style.display = 'none'
+                    }
                   }
                 }}
               />
@@ -113,7 +117,7 @@ export default function Inscripcion() {
             </div>
           </div>
 
-          {/* Método de pago - vanilla JS */}
+          {/* Método de pago */}
           <div>
             <label htmlFor="pasarela" className="text-xs text-gray-400 uppercase tracking-wider">Método de pago</label>
             <select id="pasarela" required
@@ -134,12 +138,11 @@ export default function Inscripcion() {
                 } else if (box) {
                   box.style.display = 'none'
                 }
-                // actualizar moneda en resumen
                 const monedaEl = document.getElementById('monto-moneda')
                 const bsEl = document.getElementById('monto-bs')
                 const tasaEl = document.getElementById('tasa-bcv')
                 const checked = (document.getElementById('triples') as HTMLInputElement)?.checked
-                const base = checked ? 28 : 25
+                const base = checked ? 23 : 20
                 if (monedaEl) monedaEl.textContent = val === 'binance' ? 'USDT' : 'USD'
                 const tasa = parseFloat(tasaEl?.dataset.tasa || '0')
                 if (bsEl) {
@@ -152,20 +155,20 @@ export default function Inscripcion() {
                 }
               }}
             >
-              <option value="" disabled selected>Selecciona un método</option>
+              <option value="" disabled>Selecciona un método</option>
               <option value="mercantil">Pago Móvil · Mercantil</option>
               <option value="bnc">Pago Móvil · BNC</option>
               <option value="binance">Binance Pay</option>
             </select>
           </div>
 
-          <div id="info-pago" style={{ display: 'none' }} className="bg-[#111] border border-red-800/40 rounded-xl px-4 py-4 space-y-1" />
+          <div id="info-pago" style={{ display: 'none' }} className="bg-[#111] border border-red-800/40 rounded-xl px-4 py-4" />
 
           {/* Resumen */}
           <div className="bg-red-950/30 border border-red-800/40 rounded-xl px-4 py-4">
             <p className="text-sm text-gray-400">Total a pagar</p>
             <p className="text-4xl font-black text-white">
-              <span id="monto-valor">25</span>{' '}
+              <span id="monto-valor">20</span>{' '}
               <span id="monto-moneda" className="text-xl text-gray-400">USD</span>
             </p>
             <p id="monto-bs" style={{ display: 'none' }} className="text-lg font-bold text-gray-300 mt-2" />
@@ -193,7 +196,6 @@ export default function Inscripcion() {
           </button>
         </form>
 
-        {/* Cargar tasa BCV */}
         <script dangerouslySetInnerHTML={{ __html: `
           fetch('https://ve.dolarapi.com/v1/dolares/oficial')
             .then(function(r){ return r.json() })
@@ -201,12 +203,6 @@ export default function Inscripcion() {
               var tasa = d.promedio || 0;
               var el = document.getElementById('tasa-bcv');
               if(el) el.dataset.tasa = tasa;
-              var bsEl = document.getElementById('monto-bs');
-              var pasarela = document.getElementById('pasarela');
-              if(bsEl && tasa && pasarela && pasarela.value !== 'binance') {
-                bsEl.textContent = '≈ ' + (25 * tasa).toLocaleString('es-VE', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' Bs.';
-                bsEl.style.display = 'block';
-              }
             }).catch(function(){});
         `}} />
       </div>
